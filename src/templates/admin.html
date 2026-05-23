@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Face ID Admin</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 30px;
+            background: #f4f4f4;
+        }
+        h1, h2 {
+            color: #222;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #222;
+            color: white;
+        }
+        .allowed {
+            color: green;
+            font-weight: bold;
+        }
+        .denied {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Face ID Admin Panel</h1>
+
+<div class="card">
+    <h2>Добавить пользователя</h2>
+    <form method="post" action="/admin/users">
+        <input type="text" name="full_name" placeholder="Full name" required>
+        <input type="text" name="department" placeholder="Department">
+        <input type="text" name="position" placeholder="Position">
+        <button type="submit">Добавить</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Пользователи</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>ФИО</th>
+            <th>Отдел</th>
+            <th>Позиция</th>
+            <th>Статус</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.full_name }}</td>
+            <td>{{ user.department }}</td>
+            <td>{{ user.position }}</td>
+            <td>{{ user.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <h2>Последние события</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Время</th>
+            <th>User ID</th>
+            <th>Controller</th>
+            <th>Decision</th>
+            <th>Reason</th>
+            <th>Similarity</th>
+        </tr>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.id }}</td>
+            <td>{{ event.timestamp }}</td>
+            <td>{{ event.user_id }}</td>
+            <td>{{ event.controller_id }}</td>
+            <td class="{{ event.decision }}">{{ event.decision }}</td>
+            <td>{{ event.reason }}</td>
+            <td>{{ event.similarity }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>

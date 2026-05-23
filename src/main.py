@@ -1,6 +1,8 @@
 import json
 import math
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .database import Base, engine, get_db
@@ -17,6 +19,7 @@ from .schemas import (
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Face ID Access Control Backend")
+templates = Jinja2Templates(directory="src/templates")
 
 FACE_MATCH_THRESHOLD = 0.65
 
@@ -183,3 +186,37 @@ def list_events(db: Session = Depends(get_db)):
         }
         for e in events
     ]
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_page(request: Request, db: Session = Depends(get_db)):
+    users = db.query(User).order_by(User.id.desc()).all()
+    events = db.query(AccessEvent).order_by(AccessEvent.id.desc()).limit(20).all()
+
+    return templates.TemplateResponse(
+        name="admin.html",
+        request=request,
+        context={
+            "users": users,
+            "events": events,
+        },
+    )
+
+
+@app.post("/admin/users")
+def admin_create_user(
+    full_name: str = Form(...),
+    department: str = Form(""),
+    position: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    user = User(
+        full_name=full_name,
+        department=department,
+        position=position,
+        status="active",
+    )
+    db.add(user)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)
