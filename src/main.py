@@ -73,6 +73,7 @@ def add_face(user_id: int, data: FaceCreate, db: Session = Depends(get_db)):
         user_id=user_id,
         embedding=json.dumps(data.embedding),
         embedding_model=data.embedding_model,
+        embedding_dim=len(data.embedding),
         quality_score=data.quality_score,
         status="active",
     )
@@ -192,13 +193,15 @@ def list_events(db: Session = Depends(get_db)):
 def admin_page(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.id.desc()).all()
     events = db.query(AccessEvent).order_by(AccessEvent.id.desc()).limit(20).all()
+    faces = db.query(FaceTemplate).order_by(FaceTemplate.id.desc()).all()
 
     return templates.TemplateResponse(
         name="admin.html",
         request=request,
         context={
             "users": users,
-            "events": events,
+            "faces": faces,
+	    "events": events,
         },
     )
 
@@ -219,4 +222,60 @@ def admin_create_user(
     db.add(user)
     db.commit()
 
+    return RedirectResponse(url="/admin", status_code=303)
+@app.post("/admin/users/{user_id}/toggle")
+def admin_toggle_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.status == "active":
+        user.status = "blocked"
+    else:
+        user.status = "active"
+
+    db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/users/{user_id}/add-test-face")
+def admin_add_test_face(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_id == 1:
+        embedding = [0.1, 0.2, 0.3]
+    else:
+        embedding = [0.4, 0.5, 0.6]
+
+    face = FaceTemplate(
+        user_id=user_id,
+        embedding=json.dumps(embedding),
+        embedding_model="admin_test",
+	embedding_dim=len(embedding),
+	quality_score=1.0,
+	status="active",
+    )
+
+    db.add(face)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+@app.post("/admin/faces/{face_id}/toggle")
+def admin_toggle_face(face_id: int, db: Session = Depends(get_db)):
+    face = db.query(FaceTemplate).filter(FaceTemplate.id == face_id).first()
+
+    if not face:
+        raise HTTPException(status_code=404, detail="Face template not found")
+
+    if face.status == "active":
+        face.status = "blocked"
+    else:
+        face.status = "active"
+
+    db.commit()
     return RedirectResponse(url="/admin", status_code=303)

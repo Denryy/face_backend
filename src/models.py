@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
 from sqlalchemy.sql import func
 from .database import Base
@@ -17,13 +18,17 @@ class FaceTemplate(Base):
     __tablename__ = "face_templates"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
     embedding = Column(Text, nullable=False)
     embedding_model = Column(String, default="unknown")
-    quality_score = Column(Float, default=1.0)
-    status = Column(String, default="active")
-    created_at = Column(DateTime, server_default=func.now())
+    embedding_dim = Column(Integer, default=0)
+    quality_score = Column(Float, default=0.0)
 
+    status = Column(String, default="active")
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class AccessEvent(Base):
     __tablename__ = "access_events"

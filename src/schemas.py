@@ -18,10 +18,9 @@ class UserOut(BaseModel):
 
 
 class FaceCreate(BaseModel):
-    embedding: List[float]
+    embedding: list[float]
     embedding_model: str = "unknown"
     quality_score: float = 1.0
-
 
 class AccessCheckRequest(BaseModel):
     controller_id: str

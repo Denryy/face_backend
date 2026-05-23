@@ -9,43 +9,79 @@
             margin: 30px;
             background: #f4f4f4;
         }
+
         h1, h2 {
             color: #222;
         }
+
         .card {
             background: white;
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 10px;
+            overflow-x: auto;
         }
+
         input {
             padding: 8px;
             margin: 5px;
         }
+
         button {
             padding: 8px 15px;
             cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: white;
+            margin: 2px;
         }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .danger {
+            background: #c0392b;
+        }
+
+        .success {
+            background: #27ae60;
+        }
+
+        .blue {
+            background: #2980b9;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
         }
+
         th, td {
             padding: 8px;
             border: 1px solid #ddd;
+            font-size: 14px;
         }
+
         th {
             background: #222;
             color: white;
         }
-        .allowed {
+
+        .allowed, .active {
             color: green;
             font-weight: bold;
         }
-        .denied {
+
+        .denied, .blocked, .expired, .deleted {
             color: red;
             font-weight: bold;
+        }
+
+        form {
+            display: inline;
         }
     </style>
 </head>
@@ -59,7 +95,7 @@
         <input type="text" name="full_name" placeholder="Full name" required>
         <input type="text" name="department" placeholder="Department">
         <input type="text" name="position" placeholder="Position">
-        <button type="submit">Добавить</button>
+        <button type="submit" class="success">Добавить</button>
     </form>
 </div>
 
@@ -72,14 +108,68 @@
             <th>Отдел</th>
             <th>Позиция</th>
             <th>Статус</th>
+            <th>Действия</th>
         </tr>
+
         {% for user in users %}
         <tr>
             <td>{{ user.id }}</td>
             <td>{{ user.full_name }}</td>
             <td>{{ user.department }}</td>
             <td>{{ user.position }}</td>
-            <td>{{ user.status }}</td>
+            <td class="{{ user.status }}">{{ user.status }}</td>
+            <td>
+                <form method="post" action="/admin/users/{{ user.id }}/toggle">
+                    {% if user.status == "active" %}
+                        <button type="submit" class="danger">Заблокировать</button>
+                    {% else %}
+                        <button type="submit" class="success">Активировать</button>
+                    {% endif %}
+                </form>
+
+                <form method="post" action="/admin/users/{{ user.id }}/add-test-face">
+                    <button type="submit" class="blue">Добавить test face</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <h2>Face Templates</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>User ID</th>
+            <th>Model</th>
+            <th>Dim</th>
+            <th>Quality</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Actions</th>
+        </tr>
+
+        {% for face in faces %}
+        <tr>
+            <td>{{ face.id }}</td>
+            <td>{{ face.user_id }}</td>
+            <td>{{ face.embedding_model }}</td>
+            <td>{{ face.embedding_dim }}</td>
+            <td>{{ face.quality_score }}</td>
+            <td class="{{ face.status }}">{{ face.status }}</td>
+            <td>{{ face.created_at }}</td>
+            <td>{{ face.updated_at }}</td>
+            <td>
+                <form method="post" action="/admin/faces/{{ face.id }}/toggle">
+                    {% if face.status == "active" %}
+                        <button type="submit" class="danger">Block Face</button>
+                    {% else %}
+                        <button type="submit" class="success">Activate Face</button>
+                    {% endif %}
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
@@ -97,6 +187,7 @@
             <th>Reason</th>
             <th>Similarity</th>
         </tr>
+
         {% for event in events %}
         <tr>
             <td>{{ event.id }}</td>
